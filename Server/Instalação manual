@@ -1,0 +1,80 @@
+Configurar um ip fixo no servidor
+
+Dependências:
+	# apt-get install build-essential gcc curl wget libsnmp-dev libcurl4-gnutls-dev libxml2-dev
+
+instalar o  mariaDB:
+	# apt-get install mariadb-server mariadb-client libmysqld-dev
+	# mysql_secure_installation  # respostas = N, Y, Y, Y, Y
+
+instalar do apache e do PHP:
+	# apt-get install apache2 php5 php5-mysql php5-gd php5-cli php5-xmlrpc
+
+alterar o  do arquivo php.ini
+	$ nano /etc/php5/apache2/php.ini
+conteudo:
+post_max_size = 16M
+max_execution_time = 300
+max_input_time = 300
+date.timezone = America/Sao_Paulo
+always_populate_raw_post_data = -1
+
+Reiniciar o apache:
+	$ systemctl restart apache2.service
+
+Baixar, compilar  e instalar o zabbix:
+	# wget wget http://sourceforge.net/projects/zabbix/files/ZABBIX\ Latest\ \Stable/2.4.5/zabbix-2.4.5.tar.gz
+	# tar xfz zabbix-2.4.5.tar.gz
+	# cd zabbix-2.4.5.tar.gz/
+	# ./configure --enable-server --enable-agent --with-mysql --enable-ipv6 --with-net-snmp --with-libcurl --with-libxml2
+	# make
+	# make install 
+	# groupadd zabbix
+	# useradd -g zabbix -d /usr/local/share/zabbix -s /bin/false zabbix
+
+Configurar mariaDB:
+	# mysql -u root -p 
+MariaDB> create database zabbix;
+MariaDB> grant all privileges on zabbix.* to 'zabbix'@'localhost' identified by 'your_password';
+MariaDB> flush privileges;
+MariaDB> exit;
+	# cd zabbix-2.4.5/
+	# ls database/mysql/
+	# mysql -u zabbix -p zabbix < database/mysql/schema.sql
+	# mysql -u zabbix -p zabbix < database/mysql/images.sql
+	# mysql -u zabbix -p zabbix < database/mysql/data.sql
+	# rm /var/www/html/index.html
+	# cp -rf frontends/php/* /var/www/html/
+	# usermod -aG www-data zabbix 
+	# a2enmod ssl
+	# a2ensite default-ssl
+	# systemctl restart apache2.service
+
+Configurar o zabbix server:
+	# nano /usr/local/etc/zabbix_server.conf
+conteudo:
+ListenPort=10051
+LogFile=/var/log/zabbix_server.log
+DBHost=localhost   ## Replace with the IP of the remote database in case MySQL server is located on a different host
+DBName=zabbix  ## Use the name of the Zabbix MySQL database
+DBUser =zabbix   ## Use the name of the Zabbix MySQL database User
+DBPassword=password  ## Zabbix MYSQL database password
+DBSocket=/var/run/mysqld/mysqld.sock
+DBPort=3306
+	# touch /var/log/zabbix_server.log
+	# chmod 775 /var/log/zabbix_server.log
+	# chgrp zabbix /var/log/zabbix_server.log
+	# /usr/local/sbin/zabbix_server
+	# /usr/local/sbin/zabbix_agentd
+	# /usr/local/sbin/zabbix_agent
+
+Instalação da interface web:
+	http://IP/setup.php
+ou
+	https://IP/setup.php
+	# chown -R root /var/www/html/conf/
+
+#Editar o rc.local
+	# /usr/local/sbin/zabbix_agentd
+	# /usr/local/sbin/zabbix_agent
+	# /usr/local/sbin/zabbix_server
