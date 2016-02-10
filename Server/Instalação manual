@@ -1,3 +1,4 @@
+# Base para a instalação manual do zabbix. Cobrindo a instalação de dependências, download, compilação, instalação e configuração do zabbix
 Configurar um ip fixo no servidor
 
 Dependências:
