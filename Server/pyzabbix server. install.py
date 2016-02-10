@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
-
 #Testado usando python 3 rodando sobre Debian 8.2
 
 import subprocess, os
